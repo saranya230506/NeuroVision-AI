@@ -4,8 +4,11 @@ Computes Gradient-weighted Class Activation Mapping (Grad-CAM) for EfficientNetB
 to highlight exact anatomical regions of interest driving tumor predictions.
 """
 
+from __future__ import annotations
+
 import logging
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
