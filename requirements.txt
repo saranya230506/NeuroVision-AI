@@ -1,10 +1,10 @@
 # NeuroVision AI - Production Requirements
-# Compatible with Python 3.10, 3.11, 3.12, 3.13
+# Compatible with Python 3.11 (Render.com deployment)
 
 # Deep Learning & Numerical Computing
-tensorflow>=2.15.0
-keras>=3.0.0
-numpy>=1.24.0
+# tensorflow 2.15.x bundles Keras 2.x; do NOT install standalone keras>=3.0 alongside it
+tensorflow==2.15.1
+numpy>=1.24.0,<2.0.0
 scipy>=1.11.0
 
 # Computer Vision & Image Processing

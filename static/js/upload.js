@@ -167,7 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (bodyData) fetchOptions.body = bodyData;
 
       const response = await fetch(url, fetchOptions);
-      const data = await response.json();
+
+      // Safely parse JSON — server may return HTML on 500/502/503
+      let data;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error('Non-JSON server response:', response.status, text.slice(0, 300));
+        throw new Error(
+          response.status === 502 || response.status === 503
+            ? 'Server is starting up (cold start). Please wait 30 seconds and try again.'
+            : `Server error (${response.status}). Check the Render logs for details.`
+        );
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to process brain MRI image.');

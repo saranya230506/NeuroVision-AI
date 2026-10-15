@@ -6,7 +6,7 @@ services:
     region: singapore
     branch: main
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 300 --preload app:app
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
@@ -17,3 +17,9 @@ services:
         generateValue: true
       - key: TF_CPP_MIN_LOG_LEVEL
         value: "2"
+      - key: TF_ENABLE_ONEDNN_OPTS
+        value: "0"
+      - key: TF_FORCE_GPU_ALLOW_GROWTH
+        value: "true"
+      - key: MALLOC_TRIM_THRESHOLD_
+        value: "100000"
