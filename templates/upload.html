@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}MRI Scanner & Diagnostic Studio - {{ config.PROJECT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Interactive Brain MRI Scanner</h2>
+      <p class="text-muted small mb-0">Upload an axial brain MRI scan or select a pre-bundled reference sample.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('history_page') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-clock-history me-1"></i> View Scan History
+      </a>
+      <a href="{{ url_for('dashboard_page') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-graph-up me-1"></i> Analytics
+      </a>
+    </div>
+  </div>
+
+  <!-- Quick Sample Benchmark Pills -->
+  <div class="card-glass p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
+        <span class="fw-semibold small">1-Click Reference Testing:</span>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="sample-pill-btn" data-sample="glioma">
+          <span class="badge bg-danger">Glioma</span>
+          <span>Sample Glioma</span>
+        </button>
+        <button type="button" class="sample-pill-btn" data-sample="meningioma">
+          <span class="badge bg-warning text-dark">Meningioma</span>
+          <span>Sample Meningioma</span>
+        </button>
+        <button type="button" class="sample-pill-btn" data-sample="pituitary">
+          <span class="badge bg-info text-dark">Pituitary</span>
+          <span>Sample Pituitary</span>
+        </button>
+        <button type="button" class="sample-pill-btn" data-sample="notumor">
+          <span class="badge bg-success">No Tumor</span>
+          <span>Sample Clear</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Upload & Scanner -->
+    <div class="col-lg-5">
+      <div class="card-glass p-4 h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-up-fill text-primary me-2"></i>MRI Upload Studio</h5>
+
+        <form id="mri-upload-form" enctype="multipart/form-data">
+          <!-- Hidden File Input -->
+          <input type="file" id="file-input" name="image" accept="image/png, image/jpeg, image/jpg, image/webp" class="d-none">
+
+          <!-- Dropzone -->
+          <div id="dropzone" class="dropzone-container mb-3">
+            <div class="dropzone-icon">
+              <i class="bi bi-upload"></i>
+            </div>
+            <h6 class="fw-bold mb-1">Drag and drop Brain MRI Scan here</h6>
+            <p class="text-muted small mb-2">or click to browse local files (DICOM export, PNG, JPG)</p>
+            <span class="badge bg-secondary-subtle text-muted">Max file size: 16 MB</span>
+          </div>
+
+          <!-- Preview & Radar Scanner Animation -->
+          <div id="preview-container" class="mb-3 d-none">
+            <div id="scanner-viewport" class="scanner-viewport">
+              <img id="mri-preview-img" src="" alt="MRI Preview">
+              <div class="scanner-line"></div>
+              <div class="scanner-overlay-grid"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span id="scan-status-text" class="text-muted small">Scan ready.</span>
+              <button type="button" id="reset-btn" class="btn btn-sm btn-link text-danger text-decoration-none">
+                <i class="bi bi-x-circle me-1"></i>Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Patient Information Accordion -->
+          <div class="accordion mb-3" id="patientInfoAccordion">
+            <div class="accordion-item border-0 bg-transparent">
+              <h2 class="accordion-header" id="headingPatient">
+                <button class="accordion-button collapsed card-glass p-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePatient" aria-expanded="false" aria-controls="collapsePatient">
+                  <i class="bi bi-person-vcard text-primary me-2"></i> Patient & Clinical Metadata (Optional)
+                </button>
+              </h2>
+              <div id="collapsePatient" class="accordion-collapse collapse" aria-labelledby="headingPatient" data-bs-parent="#patientInfoAccordion">
+                <div class="accordion-body pt-3 px-1">
+                  <div class="row g-2 mb-2">
+                    <div class="col-8">
+                      <label class="form-label small fw-semibold text-muted">Patient Name</label>
+                      <input type="text" name="patient_name" class="form-control form-control-sm" placeholder="e.g. Eleanor Vance">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-muted">Patient ID</label>
+                      <input type="text" name="patient_id" class="form-control form-control-sm" placeholder="PT-20261">
+                    </div>
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6">
+                      <label class="form-label small fw-semibold text-muted">Age (Years)</label>
+                      <input type="number" name="patient_age" class="form-control form-control-sm" placeholder="45" min="1" max="120">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-semibold text-muted">Gender</label>
+                      <select name="patient_gender" class="form-select form-select-sm">
+                        <option value="Not Specified">Select Gender</option>
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small fw-semibold text-muted">Referring Physician</label>
+                    <input type="text" name="physician_name" class="form-control form-control-sm" placeholder="Dr. S. K. Narayan">
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold text-muted">Clinical Indications / Notes</label>
+                    <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Patient symptoms, onset, headache patterns, prior history..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Action Button -->
+          <button type="submit" id="analyze-btn" class="btn btn-brand w-100 py-2 d-flex align-items-center justify-content-center gap-2" disabled>
+            <i class="bi bi-search"></i>
+            <span>Run Deep Neural Analysis</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Diagnostic Results -->
+    <div class="col-lg-7">
+      <!-- Empty State Card (Visible before inference) -->
+      <div id="results-card" class="card-glass p-4 d-none">
+        
+        <!-- Header with Diagnostic Finding -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-3 border-bottom gap-2">
+          <div>
+            <div class="text-muted small fw-semibold text-uppercase">Diagnostic Assessment</div>
+            <div class="d-flex align-items-center gap-2 mt-1">
+              <span id="res-primary-badge" class="badge fs-6 px-3 py-2 badge-notumor">Evaluating...</span>
+              <span id="res-confidence-text" class="fw-bold fs-5 text-main">--% Confidence</span>
+            </div>
+          </div>
+          <div>
+            <span id="res-severity-text" class="badge bg-secondary-subtle text-muted">Pending</span>
+          </div>
+        </div>
+
+        <!-- Visual Inspection (Toggle between Grad-CAM & Original) -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0"><i class="bi bi-eye-fill text-info me-2"></i>Visual Explainability (Grad-CAM)</h6>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" id="toggle-gradcam-btn" class="btn btn-primary">Grad-CAM Overlay</button>
+              <button type="button" id="toggle-original-btn" class="btn btn-outline-primary">Original Scan</button>
+            </div>
+          </div>
+          <div class="text-center p-2 rounded bg-dark border position-relative">
+            <img id="res-visual-img" src="" alt="Grad-CAM Visualization" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;">
+          </div>
+          <div class="small text-muted text-center mt-1">
+            <i class="bi bi-info-circle me-1"></i> Heatmap highlights features triggering the EfficientNetB0 classification decision.
+          </div>
+        </div>
+
+        <!-- Class Probabilities Breakdown -->
+        <div class="mb-4">
+          <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Pathology Probability Breakdown</h6>
+          
+          <!-- Glioma -->
+          <div class="prob-bar-container">
+            <div class="prob-header">
+              <span>Glioma Tumor</span>
+              <span id="prob-val-glioma" class="text-danger fw-bold">0.0%</span>
+            </div>
+            <div class="progress-custom">
+              <div id="prob-bar-glioma" class="progress-bar-fill bg-danger" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Meningioma -->
+          <div class="prob-bar-container">
+            <div class="prob-header">
+              <span>Meningioma Tumor</span>
+              <span id="prob-val-meningioma" class="text-warning fw-bold">0.0%</span>
+            </div>
+            <div class="progress-custom">
+              <div id="prob-bar-meningioma" class="progress-bar-fill bg-warning" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Pituitary -->
+          <div class="prob-bar-container">
+            <div class="prob-header">
+              <span>Pituitary Tumor</span>
+              <span id="prob-val-pituitary" class="text-info fw-bold">0.0%</span>
+            </div>
+            <div class="progress-custom">
+              <div id="prob-bar-pituitary" class="progress-bar-fill bg-info" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- No Tumor -->
+          <div class="prob-bar-container">
+            <div class="prob-header">
+              <span>No Tumor (Normal Parenchyma)</span>
+              <span id="prob-val-notumor" class="text-success fw-bold">0.0%</span>
+            </div>
+            <div class="progress-custom">
+              <div id="prob-bar-notumor" class="progress-bar-fill bg-success" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clinical Notes & Next Steps -->
+        <div class="mb-4 p-3 rounded card-glass">
+          <h6 class="fw-bold mb-2"><i class="bi bi-clipboard2-pulse text-danger me-2"></i>Clinical Pathology Notes</h6>
+          <p id="res-description-text" class="text-muted small mb-3">Diagnostic description...</p>
+          <h6 class="fw-bold mb-2 small text-uppercase text-muted">Recommended Clinical Protocol:</h6>
+          <ul id="res-recommendations-list" class="list-unstyled small text-muted mb-0"></ul>
+        </div>
+
+        <!-- Download & Report Actions -->
+        <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+          <a id="res-view-report-btn" href="#" class="btn btn-outline-primary d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-medical"></i>
+            <span>View Interactive Report</span>
+          </a>
+          <a id="res-download-pdf-btn" href="#" class="btn btn-brand d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-pdf-fill"></i>
+            <span>Download PDF Report</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Placeholder before first run -->
+      <div id="results-placeholder" class="card-glass p-5 text-center h-100 d-flex flex-column justify-content-center align-items-center">
+        <div class="fs-1 text-muted mb-3"><i class="bi bi-clipboard-pulse"></i></div>
+        <h5 class="fw-bold">Awaiting Brain MRI Scan</h5>
+        <p class="text-muted small mb-4" style="max-width: 400px;">
+          Upload a patient's axial MRI scan or choose one of the reference benchmarks above to run the EfficientNetB0 classification pipeline.
+        </p>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('file-input').click()">
+            <i class="bi bi-upload me-1"></i> Browse Files
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script>
+  // Check if URL contains ?sample= parameter to auto-trigger sample scan
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const sample = params.get('sample');
+    if (sample) {
+      const targetBtn = document.querySelector(`.sample-pill-btn[data-sample="${sample}"]`);
+      if (targetBtn) {
+        setTimeout(() => targetBtn.click(), 300);
+      }
+    }
+  });
+</script>
+{% endblock %}

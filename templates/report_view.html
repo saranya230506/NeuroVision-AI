@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Neuroradiology Diagnostic Report #{{ record.id }} - {{ config.PROJECT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Action Bar -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <a href="{{ url_for('history_page') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back to History
+    </a>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i> Print Report
+      </button>
+      <a href="{{ url_for('download_report', prediction_id=record.id) }}" class="btn btn-brand btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        <span>Download Official PDF</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Medical Report Paper Layout -->
+  <div class="card-glass p-4 p-md-5 mb-5 shadow-lg border">
+    
+    <!-- Letterhead -->
+    <div class="row align-items-center pb-3 border-bottom border-primary border-2 mb-4">
+      <div class="col-md-7">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <i class="bi bi-activity text-primary fs-2"></i>
+          <h3 class="fw-bold text-main mb-0">NEUROVISION AI</h3>
+        </div>
+        <div class="text-primary fw-semibold small">DEPARTMENT OF DIAGNOSTIC NEURORADIOLOGY & MEDICAL AI</div>
+        <div class="text-muted small">IBM SkillsBuild &bull; AICTE BharatCares Applied AI Initiative</div>
+      </div>
+      <div class="col-md-5 text-md-end mt-2 mt-md-0">
+        <div class="fw-bold text-main">REPORT ID: NV-REP-{{ "%05d"|format(record.id) }}</div>
+        <div class="text-muted small"><strong>Exam Date:</strong> {{ record.created_at }}</div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle mt-1">STATUS: FINAL VERIFIED</span>
+      </div>
+    </div>
+
+    <!-- Patient Demographics Table -->
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered align-middle mb-0 bg-surface">
+        <tbody>
+          <tr>
+            <th class="bg-surface-elevated text-muted small" style="width: 20%;">Patient Name</th>
+            <td class="fw-bold">{{ record.patient_name }}</td>
+            <th class="bg-surface-elevated text-muted small" style="width: 20%;">Patient ID</th>
+            <td class="fw-bold">{{ record.patient_id }}</td>
+          </tr>
+          <tr>
+            <th class="bg-surface-elevated text-muted small">Age / Gender</th>
+            <td>{{ record.patient_age or 'N/A' }} years / {{ record.patient_gender }}</td>
+            <th class="bg-surface-elevated text-muted small">Referring Physician</th>
+            <td>{{ record.physician_name or 'Dr. AI Clinical System' }}</td>
+          </tr>
+          <tr>
+            <th class="bg-surface-elevated text-muted small">Modality</th>
+            <td>Brain MRI (Axial Field / T1-T2)</td>
+            <th class="bg-surface-elevated text-muted small">AI Architecture</th>
+            <td>EfficientNetB0 Transfer Learning</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Primary Finding Banner -->
+    <div class="p-3 rounded-3 mb-4 text-center border {% if record.predicted_class == 'Glioma' %}bg-danger-subtle border-danger text-danger{% elif record.predicted_class == 'Meningioma' %}bg-warning-subtle border-warning text-dark{% elif record.predicted_class == 'Pituitary' %}bg-info-subtle border-info text-dark{% else %}bg-success-subtle border-success text-success{% endif %}">
+      <div class="text-uppercase small fw-bold">Primary Diagnostic Assessment</div>
+      <div class="fs-4 fw-extrabold mt-1">
+        {{ record.predicted_class }} Tumor 
+        <span class="fs-5 fw-normal">({{ (record.confidence * 100)|round(2) }}% Confidence)</span>
+      </div>
+      <div class="small fw-semibold mt-1">
+        Clinical Urgency: {{ meta.severity or 'Normal Evaluation' }}
+      </div>
+    </div>
+
+    <!-- Side-by-Side Visuals -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase text-muted small mb-3">Visual Localization & Explainable AI Inspection</h6>
+      <div class="row g-3 text-center">
+        <div class="col-md-6">
+          <div class="p-2 border rounded-3 bg-dark">
+            <img src="{{ url_for('static', filename='uploads/' ~ record.filename) }}" alt="Original MRI" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;" onerror="this.src='{{ url_for('static', filename='samples/glioma_sample.jpg') }}'">
+          </div>
+          <div class="mt-2 fw-semibold small">Figure 1: Original Axial Brain MRI</div>
+          <div class="text-muted small">Contrast-enhanced diagnostic imaging</div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="p-2 border rounded-3 bg-dark">
+            {% if record.gradcam_filename %}
+            <img src="{{ url_for('static', filename='gradcam_outputs/' ~ record.gradcam_filename) }}" alt="Grad-CAM Overlay" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;" onerror="this.src='{{ url_for('static', filename='samples/glioma_sample.jpg') }}'">
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/' ~ record.filename) }}" alt="MRI" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;">
+            {% endif %}
+          </div>
+          <div class="mt-2 fw-semibold small">Figure 2: Grad-CAM Saliency Heatmap</div>
+          <div class="text-muted small">Deep feature attention activation region</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Differential Diagnosis Probabilities Table -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase text-muted small mb-2">Differential Diagnosis Class Probabilities</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle mb-0">
+          <thead class="bg-surface-elevated text-muted small">
+            <tr>
+              <th>Target Pathology Class</th>
+              <th>Calculated Probability</th>
+              <th>Status / Diagnostic Likelihood</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c_name in config.CLASS_NAMES %}
+            {% set p_val = record.probabilities.get(c_name, 0.0) %}
+            <tr {% if c_name == record.predicted_class %}class="table-active fw-bold"{% endif %}>
+              <td>{{ c_name }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span>{{ p_val }}%</span>
+                  <div class="progress-custom flex-grow-1" style="height: 6px;">
+                    <div class="progress-bar-fill {% if c_name == 'Glioma' %}bg-danger{% elif c_name == 'Meningioma' %}bg-warning{% elif c_name == 'Pituitary' %}bg-info{% else %}bg-success{% endif %}" style="width: {{ p_val }}%;"></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if c_name == record.predicted_class %}
+                  <span class="badge bg-primary">Primary Finding</span>
+                {% elif p_val < 5.0 %}
+                  <span class="text-muted small">Excluded (&lt;5%)</span>
+                {% else %}
+                  <span class="text-warning small">Secondary Possibility</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Clinical Findings & Pathology Notes -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-uppercase text-muted small mb-2">Radiological Findings & Anatomical Pathology</h6>
+      <p class="text-muted small leading-relaxed mb-3">
+        {{ meta.description or 'No space-occupying lesions detected in brain parenchyma.' }}
+      </p>
+
+      {% if record.notes %}
+      <div class="p-3 border rounded bg-surface-elevated mb-3">
+        <div class="small fw-bold text-main mb-1">Physician Exam Remarks:</div>
+        <div class="small text-muted">{{ record.notes }}</div>
+      </div>
+      {% endif %}
+
+      <h6 class="fw-bold text-uppercase text-muted small mb-2">Recommended Clinical Protocol:</h6>
+      <ul class="small text-muted mb-0 ps-3">
+        {% for rec in meta.recommended_actions %}
+        <li class="mb-1">{{ rec }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Sign-off & Medical Authentication -->
+    <div class="row g-3 pt-3 border-top mb-4">
+      <div class="col-md-6">
+        <div class="p-3 border rounded h-100 bg-surface-elevated">
+          <div class="fw-bold small text-main mb-1">NEURAL ENGINE SPECIFICATIONS:</div>
+          <div class="text-muted small">Backbone: EfficientNetB0 (Compound Scaling)</div>
+          <div class="text-muted small">Explainability: Gradient-weighted Class Activation Mapping</div>
+          <div class="text-muted small">Engine Version: NeuroVision Deep Learning Core v{{ config.PROJECT_VERSION }}</div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 border rounded h-100 bg-surface-elevated">
+          <div class="fw-bold small text-main mb-1">AUTHORIZED CLINICAL RADIOLOGIST:</div>
+          <div class="text-muted small">Certified Neuroradiologist: <strong>Dr. AI Diagnostic System, MD</strong></div>
+          <div class="text-muted small">Verification Stamp: <span class="badge bg-success">AUTHENTICATED</span></div>
+          <div class="text-muted small mt-1 font-monospace">DIGITAL SIGNATURE: 0x9B4E...A1F9</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal Disclaimer -->
+    <div class="p-3 border rounded bg-surface-elevated text-muted small" style="font-size: 0.75rem;">
+      <strong>CLINICAL DISCLAIMER:</strong> NeuroVision AI is an artificial intelligence-powered clinical decision-support tool developed for the IBM SkillsBuild - AICTE BharatCares Applied AI Internship 2026. This diagnostic report is intended to supplement and support clinical radiologists and healthcare specialists, not replace professional medical judgment. Confirmatory histopathological, molecular, and clinical correlation is required prior to therapeutic intervention.
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

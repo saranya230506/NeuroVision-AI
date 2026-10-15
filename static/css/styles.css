@@ -1,0 +1,350 @@
+/* ==========================================================================
+   NeuroVision AI - Medical & Cybernetic Design System
+   Modern, responsive, glassmorphic UI with dynamic dark/light theme support.
+   ========================================================================== */
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Light Theme Palette */
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-glass: rgba(255, 255, 255, 0.85);
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  
+  --border-color: #e2e8f0;
+  --border-focus: #3b82f6;
+  
+  --brand-primary: #2563eb;
+  --brand-secondary: #06b6d4;
+  --brand-accent: #8b5cf6;
+  --brand-gradient: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+  --brand-glow: rgba(37, 99, 235, 0.25);
+  
+  /* Pathology Diagnostic Semantic Colors */
+  --color-glioma: #ef4444;
+  --color-glioma-bg: #fee2e2;
+  --color-meningioma: #f59e0b;
+  --color-meningioma-bg: #fef3c7;
+  --color-pituitary: #06b6d4;
+  --color-pituitary-bg: #cffafe;
+  --color-notumor: #10b981;
+  --color-notumor-bg: #d1fae5;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 25px rgba(6, 182, 212, 0.3);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #090d16;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1f2937;
+  --bg-surface-glass: rgba(17, 24, 39, 0.85);
+  
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+  
+  --border-color: #374151;
+  --border-focus: #60a5fa;
+  
+  --brand-primary: #3b82f6;
+  --brand-secondary: #22d3ee;
+  --brand-accent: #a78bfa;
+  --brand-gradient: linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%);
+  --brand-glow: rgba(59, 130, 246, 0.35);
+  
+  --color-glioma-bg: rgba(239, 68, 68, 0.15);
+  --color-meningioma-bg: rgba(245, 158, 11, 0.15);
+  --color-pituitary-bg: rgba(6, 182, 212, 0.15);
+  --color-notumor-bg: rgba(16, 185, 129, 0.15);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 30px rgba(34, 211, 238, 0.25);
+}
+
+/* Global Reset & Base */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+/* Glassmorphism Cards */
+.card-glass {
+  background: var(--bg-surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card-glass:hover {
+  border-color: var(--border-focus);
+}
+
+/* Navigation Bar */
+.navbar-custom {
+  background: var(--bg-surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s ease;
+}
+
+.navbar-brand {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--brand-primary) !important;
+  background-color: var(--bg-surface-elevated);
+}
+
+/* Hero Section */
+.hero-gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+/* Buttons */
+.btn-brand {
+  background: var(--brand-gradient);
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1.5rem;
+  box-shadow: 0 4px 14px 0 var(--brand-glow);
+  transition: all 0.25s ease;
+}
+
+.btn-brand:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 var(--brand-glow);
+  color: #ffffff;
+}
+
+/* Drag & Drop Upload Zone */
+.dropzone-container {
+  border: 2px dashed var(--border-color);
+  background: var(--bg-surface);
+  border-radius: 1.25rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.dropzone-container:hover, .dropzone-container.dragover {
+  border-color: var(--brand-secondary);
+  background: var(--bg-surface-elevated);
+  box-shadow: var(--shadow-glow);
+}
+
+.dropzone-icon {
+  font-size: 3rem;
+  color: var(--brand-secondary);
+  margin-bottom: 1rem;
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+/* Scanner Radar Animation */
+.scanner-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--border-color);
+}
+
+.scanner-viewport img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.scanner-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #22d3ee, #3b82f6, transparent);
+  box-shadow: 0 0 15px #22d3ee, 0 0 25px #3b82f6;
+  opacity: 0;
+  z-index: 10;
+}
+
+.scanning .scanner-line {
+  opacity: 1;
+  animation: radar-sweep 2s infinite ease-in-out;
+}
+
+.scanner-overlay-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.scanning .scanner-overlay-grid {
+  opacity: 1;
+}
+
+/* Keyframes */
+@keyframes radar-sweep {
+  0% { top: 0%; }
+  50% { top: 98%; }
+  100% { top: 0%; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+/* Diagnostic Badges */
+.badge-glioma {
+  background-color: var(--color-glioma-bg);
+  color: var(--color-glioma);
+  border: 1px solid var(--color-glioma);
+  font-weight: 700;
+}
+
+.badge-meningioma {
+  background-color: var(--color-meningioma-bg);
+  color: var(--color-meningioma);
+  border: 1px solid var(--color-meningioma);
+  font-weight: 700;
+}
+
+.badge-pituitary {
+  background-color: var(--color-pituitary-bg);
+  color: var(--color-pituitary);
+  border: 1px solid var(--color-pituitary);
+  font-weight: 700;
+}
+
+.badge-notumor {
+  background-color: var(--color-notumor-bg);
+  color: var(--color-notumor);
+  border: 1px solid var(--color-notumor);
+  font-weight: 700;
+}
+
+/* Probability Bars */
+.prob-bar-container {
+  margin-bottom: 0.85rem;
+}
+
+.prob-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.progress-custom {
+  height: 10px;
+  background-color: var(--bg-surface-elevated);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sample Quick-Pills */
+.sample-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sample-pill-btn:hover {
+  border-color: var(--brand-secondary);
+  background: var(--bg-surface-elevated);
+  transform: translateY(-1px);
+}
+
+.sample-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* Footer */
+footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 1.5rem 0;
+}

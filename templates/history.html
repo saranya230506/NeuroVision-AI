@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Diagnostic Registry & Scan History - {{ config.PROJECT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Patient Diagnostic Registry</h2>
+      <p class="text-muted small mb-0">Search, filter, inspect, and export verified MRI scan assessments stored in local SQLite database.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('upload_page') }}" class="btn btn-brand btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-plus-lg"></i>
+        <span>New Scan</span>
+      </a>
+      {% if records %}
+      <button type="button" id="clear-history-btn" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-trash3"></i>
+        <span>Clear Registry</span>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="card-glass p-3 mb-4">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-end-0 text-muted">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" id="history-search-input" class="form-control border-start-0" placeholder="Search patient name, ID, physician, or notes..." value="{{ current_query }}">
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="d-flex flex-wrap justify-content-md-end gap-1">
+          <a href="{{ url_for('history_page', class='all') }}" class="btn btn-sm {% if current_filter == 'all' or not current_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+            All ({{ records|length }})
+          </a>
+          <a href="{{ url_for('history_page', class='Glioma') }}" class="btn btn-sm {% if current_filter == 'Glioma' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+            Glioma
+          </a>
+          <a href="{{ url_for('history_page', class='Meningioma') }}" class="btn btn-sm {% if current_filter == 'Meningioma' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+            Meningioma
+          </a>
+          <a href="{{ url_for('history_page', class='Pituitary') }}" class="btn btn-sm {% if current_filter == 'Pituitary' %}btn-info text-dark{% else %}btn-outline-info{% endif %}">
+            Pituitary
+          </a>
+          <a href="{{ url_for('history_page', class='No Tumor') }}" class="btn btn-sm {% if current_filter == 'No Tumor' %}btn-success{% else %}btn-outline-success{% endif %}">
+            Clear Scan
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Records Table -->
+  <div class="card-glass p-4">
+    {% if records %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr class="text-muted small">
+            <th>ID</th>
+            <th>Patient Details</th>
+            <th>Visual Modality</th>
+            <th>Diagnostic Assessment</th>
+            <th>AI Confidence</th>
+            <th>Physician / Notes</th>
+            <th>Date & Time</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+          <tr id="row-{{ r.id }}" class="history-row" style="transition: opacity 0.3s ease;">
+            <td class="fw-bold">#{{ r.id }}</td>
+            <td>
+              <div class="fw-semibold text-main">{{ r.patient_name }}</div>
+              <div class="text-muted small">
+                ID: {{ r.patient_id }} &bull; {{ r.patient_age if r.patient_age else '--' }}y &bull; {{ r.patient_gender }}
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ url_for('static', filename='uploads/' ~ r.filename) }}" alt="MRI Scan" class="rounded border" width="44" height="44" style="object-fit: cover;" onerror="this.src='{{ url_for('static', filename='samples/glioma_sample.jpg') }}'">
+                {% if r.gradcam_filename %}
+                <img src="{{ url_for('static', filename='gradcam_outputs/' ~ r.gradcam_filename) }}" alt="Grad-CAM" class="rounded border" width="44" height="44" style="object-fit: cover;" onerror="this.style.display='none'">
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              {% if r.predicted_class == 'Glioma' %}
+                <span class="badge badge-glioma px-2 py-1">Glioma</span>
+              {% elif r.predicted_class == 'Meningioma' %}
+                <span class="badge badge-meningioma px-2 py-1">Meningioma</span>
+              {% elif r.predicted_class == 'Pituitary' %}
+                <span class="badge badge-pituitary px-2 py-1">Pituitary</span>
+              {% else %}
+                <span class="badge badge-notumor px-2 py-1">No Tumor</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="fw-bold">{{ (r.confidence * 100)|round(1) }}%</div>
+              <div class="progress-custom mt-1" style="width: 70px;">
+                <div class="progress-bar-fill {% if r.predicted_class == 'Glioma' %}bg-danger{% elif r.predicted_class == 'Meningioma' %}bg-warning{% elif r.predicted_class == 'Pituitary' %}bg-info{% else %}bg-success{% endif %}" style="width: {{ (r.confidence * 100)|round(0) }}%;"></div>
+              </div>
+            </td>
+            <td>
+              <div class="small fw-semibold">{{ r.physician_name or 'Dr. AI Reviewer' }}</div>
+              <div class="text-muted small text-truncate" style="max-width: 160px;" title="{{ r.notes }}">{{ r.notes or 'No clinical remarks' }}</div>
+            </td>
+            <td class="text-muted small">{{ r.created_at }}</td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('report_page', prediction_id=r.id) }}" class="btn btn-outline-primary" title="View Interactive Clinical Report">
+                  <i class="bi bi-file-earmark-medical"></i>
+                </a>
+                <a href="{{ url_for('download_report', prediction_id=r.id) }}" class="btn btn-outline-secondary" title="Download Official Medical PDF Report">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+                <button type="button" class="btn btn-outline-danger delete-record-btn" data-id="{{ r.id }}" data-patient="{{ r.patient_name }}" title="Delete Record">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <div class="fs-1 text-muted mb-2"><i class="bi bi-folder-x"></i></div>
+      <h5 class="fw-bold">No Diagnostic Records Found</h5>
+      <p class="text-muted small mb-4">
+        {% if current_query or (current_filter and current_filter != 'all') %}
+          No patient records match the applied search filter. <a href="{{ url_for('history_page') }}">Reset filters</a>.
+        {% else %}
+          The registry is currently empty. Analyze an MRI scan to begin building records.
+        {% endif %}
+      </p>
+      <a href="{{ url_for('upload_page') }}" class="btn btn-brand btn-sm">
+        <i class="bi bi-upload me-1"></i> Scan MRI Now
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

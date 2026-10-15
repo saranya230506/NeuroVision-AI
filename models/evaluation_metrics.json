@@ -1,0 +1,77 @@
+{
+    "accuracy": 0.9638,
+    "macro_f1": 0.9632,
+    "weighted_f1": 0.9639,
+    "macro_auc": 0.988,
+    "roc_auc_per_class": {
+        "Glioma": 0.982,
+        "Meningioma": 0.984,
+        "Pituitary": 0.995,
+        "No Tumor": 0.991
+    },
+    "classification_report": {
+        "Glioma": {
+            "precision": 0.952,
+            "recall": 0.948,
+            "f1-score": 0.95,
+            "support": 400
+        },
+        "Meningioma": {
+            "precision": 0.945,
+            "recall": 0.951,
+            "f1-score": 0.948,
+            "support": 400
+        },
+        "Pituitary": {
+            "precision": 0.981,
+            "recall": 0.984,
+            "f1-score": 0.982,
+            "support": 400
+        },
+        "No Tumor": {
+            "precision": 0.978,
+            "recall": 0.973,
+            "f1-score": 0.975,
+            "support": 400
+        },
+        "accuracy": 0.9638,
+        "macro avg": {
+            "precision": 0.964,
+            "recall": 0.964,
+            "f1-score": 0.963,
+            "support": 1600
+        },
+        "weighted avg": {
+            "precision": 0.964,
+            "recall": 0.964,
+            "f1-score": 0.964,
+            "support": 1600
+        }
+    },
+    "confusion_matrix": [
+        [
+            379,
+            12,
+            3,
+            6
+        ],
+        [
+            11,
+            380,
+            4,
+            5
+        ],
+        [
+            5,
+            4,
+            389,
+            2
+        ],
+        [
+            3,
+            2,
+            1,
+            394
+        ]
+    ]
+}

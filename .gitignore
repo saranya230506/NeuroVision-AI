@@ -1,0 +1,88 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+.env.local
+
+# IDE & OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Testing & Logs
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# TensorFlow & Training Checkpoints
+models/checkpoints/
+models/tensorboard/
+*.checkpoint
+
+# Temporary uploads & reports (keep directories with .gitkeep)
+static/uploads/*
+!static/uploads/.gitkeep
+static/gradcam_outputs/*
+!static/gradcam_outputs/.gitkeep
+static/reports/*
+!static/reports/.gitkeep
+
+# Archive raw download
+archive*.zip
+
+# Large binary files (use Git LFS if needed)
+*.zip
+
+# Database file (regenerated on setup)
+database/neurovision.db
+
+# Internship deliverables PDF (source is .md)
+Internship Deliverables Overview.pdf
+
+# Generated output files
+output.txt
+test_pred.txt
+debug_step.py
+test_run.py
+scratch/

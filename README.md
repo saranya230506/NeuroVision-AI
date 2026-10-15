@@ -1,0 +1,296 @@
+<div align="center">
+
+# 🧠 NeuroVision AI
+### AI-Powered Brain Tumor Detection & Diagnostic Explainability using Deep Learning (EfficientNetB0)
+
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg?logo=python)](https://www.python.org/)
+[![TensorFlow 2.15+](https://img.shields.io/badge/TensorFlow-2.15%2B-orange.svg?logo=tensorflow)](https://www.tensorflow.org/)
+[![Flask 3.0+](https://img.shields.io/badge/Flask-3.0%2B-lightgrey.svg?logo=flask)](https://flask.palletsprojects.com/)
+[![Docker Ready](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![SDG 3](https://img.shields.io/badge/UN%20SDG-Goal%203%3A%20Good%20Health-green.svg)](https://sdgs.un.org/goals/goal3)
+[![IBM SkillsBuild](https://img.shields.io/badge/IBM%20SkillsBuild-AICTE%20BharatCares%202026-blueviolet.svg)](https://skillsbuild.org/)
+
+<p align="center">
+  <strong>A production-grade Clinical Neuroradiology Web Platform that classifies brain MRI scans into four pathologies (Glioma, Meningioma, Pituitary, and Normal Brain Parenchyma) using transfer learning on EfficientNetB0, visualizes decision drivers via Grad-CAM saliency heatmaps, and automatically generates hospital-ready medical diagnostic PDF reports.</strong>
+</p>
+
+[Key Features](#-key-features) •
+[System Architecture](#-system-architecture) •
+[Quick Start](#-quick-start) •
+[Training & Evaluation](#-training--evaluation) •
+[API Reference](#-api-documentation) •
+[IBM Deliverables](#-ibm-skillsbuild-deliverables)
+
+</div>
+
+---
+
+## 📌 Project Overview
+
+Brain tumors represent some of the most aggressive oncological conditions globally, where early detection and precise anatomical differentiation directly dictate patient survival. In secondary healthcare and resource-constrained regional centers, access to sub-specialist neuroradiologists is critically bottlenecked.
+
+**NeuroVision AI** bridges this clinical gap as a comprehensive, explainable AI clinical decision-support system:
+- **Multi-Class Classification**: Identifies **Glioma**, **Meningioma**, **Pituitary Adenoma**, or **Healthy Brain Tissue** from axial MRI scans.
+- **Explainable AI (Grad-CAM)**: Transparently pinpoints the spatial activation maps within the MRI that governed the neural network's diagnostic decision, eliminating "black-box" risk.
+- **Automated Medical Reporting**: Generates downloadable, board-certified PDF radiology diagnostic reports powered by ReportLab.
+- **Patient History & Registry**: Retains longitudinal patient scan histories with search, filtering, and metric tracking via SQLite.
+
+---
+
+## ✨ Key Features
+
+- **Deep Transfer Learning**: Utilizes **EfficientNetB0** compound scaling pre-trained on ImageNet with a customized classification head.
+- **Two-Stage Fine-Tuning**: Initial feature extraction with frozen backbone followed by selective top-layer fine-tuning for maximum domain adaptation.
+- **Medical Image Enhancement (CLAHE)**: Contrast Limited Adaptive Histogram Equalization accentuates subtle gray-white matter boundaries and lesion margins.
+- **Real-Time Grad-CAM Visualizer**: Interactive in-browser toggle between raw MRI scans and gradient-weighted saliency overlays.
+- **Interactive Web Application**: Responsive Flask frontend styled with Bootstrap 5.3, glassmorphism, scanner radar sweep animation, and persistent dark/light mode.
+- **Clinical Dashboard**: Real-time KPI cards and interactive Chart.js visualizations tracking class distributions and diagnostic throughput.
+- **Zero-Upload Sample Benchmarks**: One-click instant testing using pre-bundled verified reference scans for all four classes.
+- **Complete Test Suite**: Unit and integration tests covering model architecture, Grad-CAM, database CRUD, API routes, and PDF report generation.
+
+---
+
+## 📸 Application Screenshots
+
+<div align="center">
+
+| Landing Page | MRI Scanner & Analysis |
+|:---:|:---:|
+| <img src="static/screenshots/landing_page.png" width="400"/> | <img src="static/screenshots/scanner_results.png" width="400"/> |
+
+| Grad-CAM Heatmap | Clinical Dashboard |
+|:---:|:---:|
+| <img src="static/screenshots/gradcam_overlay.png" width="400"/> | <img src="static/screenshots/dashboard.png" width="400"/> |
+
+| Patient History | PDF Medical Report |
+|:---:|:---:|
+| <img src="static/screenshots/history.png" width="400"/> | <img src="static/screenshots/pdf_report.png" width="400"/> |
+
+</div>
+
+---
+
+## 🏗️ System Architecture
+
+```
+                    ┌───────────────────────────────┐
+                    │      Patient Brain MRI        │
+                    │   (Axial Scan / PNG / JPG)    │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │      CLAHE Preprocessing      │
+                    │ (Medical Contrast Enhancement)│
+                    └───────────────┬───────────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    │                               │
+                    ▼                               ▼
+       ┌────────────────────────┐      ┌────────────────────────┐
+       │ EfficientNetB0 Backbone│      │ Grad-CAM Gradient Tape │
+       │ (Compound Scaled CNN)  │      │ (Feature Layer top_conv)│
+       └────────────┬───────────┘      └────────────┬───────────┘
+                    │                               │
+                    ▼                               ▼
+       ┌────────────────────────┐      ┌────────────────────────┐
+       │   Softmax Classifier   │      │ Saliency Jet Heatmap   │
+       │ (4-Class Probabilities)│      │   & Superimposed Blend │
+       └────────────┬───────────┘      └────────────┬───────────┘
+                    │                               │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+       ┌────────────────────────────────────────────────────────┐
+       │                   Flask Web Engine                     │
+       ├────────────────────────┬───────────────────────────────┤
+       │ SQLite Patient History │ ReportLab PDF Medical Report │
+       └────────────────────────┴───────────────────────────────┘
+```
+
+---
+
+## 📂 Repository Structure
+
+```
+NeuroVision-AI/
+├── config.py                   # Centralized application, paths & hyperparameters
+├── app.py                      # Flask web application & REST API routes
+├── run.py                      # Unified CLI management interface
+├── requirements.txt            # Production dependencies
+├── Dockerfile                  # Containerization specification
+├── docker-compose.yml          # Container orchestration
+├── Makefile                    # Standard developer automation targets
+├── LICENSE                     # MIT License
+├── dataset/                    # 7,200 brain MRI images
+│   ├── Training/               # 5,600 training scans (1,400 per class)
+│   └── Testing/                # 1,600 testing scans (400 per class)
+├── models/                     # Saved model artifacts & training logs
+│   ├── efficientnet_brain_tumor.keras
+│   └── training_history.json
+├── database/                   # SQLite persistence layer
+│   ├── db.py                   # CRUD & statistics functions
+│   └── neurovision.db          # Active SQLite database file
+├── src/                        # Core backend ML & processing modules
+│   ├── __init__.py
+│   ├── model.py                # EfficientNetB0 architecture & fine-tuning logic
+│   ├── train.py                # End-to-end 2-phase training pipeline
+│   ├── evaluate.py             # Confusion matrix & multi-class ROC curves
+│   ├── gradcam.py              # Grad-CAM heatmap generator & OpenCV overlay
+│   ├── predict.py              # Singleton inference engine
+│   ├── report_generator.py     # ReportLab clinical diagnostic PDF generator
+│   └── utils.py                # CLAHE preprocessing, logging, seed fixing
+├── static/                     # Web assets
+│   ├── css/styles.css          # Custom dark/light mode & scanner styles
+│   ├── js/                     # Client-side controllers (main, upload, dashboard, history)
+│   ├── samples/                # Reference MRI benchmarks for 1-click testing
+│   ├── uploads/                # User uploaded scans
+│   ├── gradcam_outputs/        # Generated Grad-CAM overlays
+│   └── reports/                # Generated PDF reports
+├── templates/                  # Jinja2 HTML templates
+│   ├── base.html               # Master layout with theme switcher
+│   ├── index.html              # Landing hero & feature showcase
+│   ├── upload.html             # MRI scanner workspace & results view
+│   ├── dashboard.html          # Clinical analytics & Chart.js graphs
+│   ├── history.html            # Patient registry with search & filters
+│   ├── report_view.html        # In-browser diagnostic report
+│   └── about.html              # Architecture & mathematical specifications
+├── tests/                      # Automated test suite
+│   ├── test_model.py           # Model loading & inference tests
+│   ├── test_gradcam.py         # Heatmap generation tests
+│   ├── test_database.py        # SQLite CRUD integration tests
+│   ├── test_api.py             # Flask REST endpoint tests
+│   └── test_report.py          # PDF generation tests
+└── docs/                       # Official IBM Internship Deliverables
+    ├── IBM_CONCEPT_NOTE.md     # Comprehensive 15+ page academic concept note
+    ├── LEAN_CANVAS.md          # 9-box business & operational Lean Canvas
+    ├── PROJECT_ARCHITECTURE.md # System design & mathematical formulation
+    ├── DEPLOYMENT_GUIDE.md     # Production cloud & Docker deployment guide
+    └── USER_MANUAL.md          # Clinician & administrator user manual
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- Python 3.10, 3.11, 3.12, or 3.13
+- pip package manager
+
+### 2. Installation & Setup
+```bash
+# Clone the repository
+git clone https://github.com/saranya230506/NeuroVision-AI.git
+cd NeuroVision-AI
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install required packages
+pip install -r requirements.txt
+```
+
+### 3. Initialize & Seed Demo Database
+Populate the local SQLite database with clinical reference cases:
+```bash
+python run.py seed
+```
+
+### 4. Launch the Web Application
+```bash
+python run.py serve
+# Or directly via Flask:
+python app.py
+```
+Open your browser and navigate to **`http://127.0.0.1:5000`**.
+
+---
+
+## 🧪 Training & Evaluation
+
+### Train from Scratch
+To run the full two-stage transfer learning and fine-tuning pipeline on the dataset:
+```bash
+python run.py train --epochs1 10 --epochs2 15 --batch-size 32
+```
+*Outputs:*
+- Best model saved to `models/efficientnet_brain_tumor.keras`
+- Training trajectories saved to `static/training_curves.png`
+- Metric logs stored in `models/training_history.json`
+
+### Run Model Evaluation
+Compute confusion matrices and multi-class ROC curves on the 1,600 test scans:
+```bash
+python run.py evaluate
+```
+*Outputs:*
+- Confusion Matrix: `static/confusion_matrix.png`
+- Multi-Class ROC-AUC Curves: `static/roc_curve.png`
+- Detailed metrics JSON: `models/evaluation_metrics.json`
+
+---
+
+## 🩺 Automated Test Suite
+
+Execute all unit and integration tests using `pytest`:
+```bash
+pytest tests/ -v
+# Or via Makefile:
+make test
+```
+
+---
+
+## 📡 REST API Documentation
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/predict` | `POST` | Upload MRI scan (`multipart/form-data`) with optional patient metadata; returns diagnosis, probabilities, and Grad-CAM URLs |
+| `/api/sample/<sample_type>` | `POST` | Execute inference on pre-bundled reference scans (`glioma`, `meningioma`, `notumor`, `pituitary`) |
+| `/api/history` | `GET` | Retrieve JSON list of past patient scans (supports `?q=` and `?class=`) |
+| `/api/history/<id>` | `DELETE` | Remove individual patient record by integer ID |
+| `/api/history/clear` | `POST` | Purge all diagnostic history from SQLite database |
+| `/api/stats` | `GET` | Aggregate counts, class distributions, and confidence averages |
+| `/api/health` | `GET` | Docker & container healthcheck status |
+
+---
+
+## 🐳 Docker Deployment
+
+Run NeuroVision AI in an isolated production container:
+```bash
+# Build the Docker image
+docker build -t neurovision-ai .
+
+# Run the container
+docker run -p 5000:5000 neurovision-ai
+```
+Or with Docker Compose:
+```bash
+docker compose up -d
+```
+
+---
+
+## 📋 IBM SkillsBuild Deliverables
+
+This repository fulfills all requirements for the **IBM SkillsBuild - AICTE BharatCares Machine Learning & Applied AI Internship 2026**:
+1. **[IBM Concept Note](docs/IBM_CONCEPT_NOTE.md)**: Comprehensive academic report covering Problem Statement, UN SDG 3 Mapping, Literature Survey, Methodology, Architecture, and Evaluation.
+2. **[Lean Canvas](docs/LEAN_CANVAS.md)**: Structured 9-block business & operational framework for healthcare implementation.
+3. **[Project Architecture](docs/PROJECT_ARCHITECTURE.md)**: Deep technical architecture and Grad-CAM mathematical formulation.
+4. **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)**: Production cloud, Docker, and WSGI deployment guide.
+5. **[User Manual](docs/USER_MANUAL.md)**: Clinical user guide for radiographers and clinicians.
+
+---
+
+## 📄 License
+This project is open-source under the [MIT License](LICENSE).
+
+## 👤 Author
+**Saranya**  
+Department of Computer Science & Engineering, Marwadi University  
+GitHub: [@saranya230506](https://github.com/saranya230506)  
+Email: `psaranya.126749@marwadiuniversity.ac.in` | `saranyareddy2305@gmail.com`  
+Internship ID: IBM SkillsBuild - AICTE BharatCares Cohort 2026
