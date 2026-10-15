@@ -348,8 +348,8 @@ All deliverables prepared for the **AICTE | IBM SkillsBuild Machine Learning & A
 This project is open-source under the [MIT License](LICENSE).
 
 ## 👤 Author
-**Saranya**  
+**P Saranya**  
 Department of Computer Science & Engineering, Marwadi University  
 GitHub: [@saranya230506](https://github.com/saranya230506)  
 Email: `psaranya.126749@marwadiuniversity.ac.in` | `saranyareddy2305@gmail.com`  
-Internship ID: IBM SkillsBuild - AICTE BharatCares Cohort 2026
+Internship ID: **IBMUEML010400** (AICTE | IBM SkillsBuild - BharatCares Cohort 2026)

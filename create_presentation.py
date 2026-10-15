@@ -108,7 +108,7 @@ div.line.fill.background()
 meta_box = s1.shapes.add_textbox(Inches(1.2), Inches(3.9), Inches(10.5), Inches(2.2))
 tf_m = meta_box.text_frame
 lines = [
-    ("Student Author:", "Saranya (Internship ID: IBMUEML004123)"),
+    ("Student Author:", "P Saranya (Internship ID: IBMUEML010400)"),
     ("Institution:", "Marwadi University | B.Tech CSE (AI & ML), Semester 5"),
     ("Program Cohort:", "Machine Learning & Applied AI Internship 2026"),
     ("UN SDG Focus:", "Goal 3: Good Health and Well-Being (Target 3.4 & 3.c)"),
