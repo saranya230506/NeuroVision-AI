@@ -31,6 +31,122 @@
     </p>
   </div>
 
+  <!-- Realistic End-to-End System Architecture Pipeline -->
+  <div class="card-glass p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <span class="badge bg-primary mb-1">🏗️ Engineering Architecture</span>
+        <h4 class="fw-bold mb-0">Realistic Clinical Inference & Explainability Pipeline</h4>
+      </div>
+      <div class="badge bg-surface-elevated text-info border border-info p-2 font-monospace small">
+        Latency: &lt; 150ms &bull; Params: 5.3M &bull; Resolution: 224&times;224
+      </div>
+    </div>
+    
+    <p class="text-muted small mb-4">
+      The complete dataflow from patient acquisition to dual explainable visual attribution and certified vector medical reporting:
+    </p>
+
+    <!-- Visual Interactive Flow Steps -->
+    <div class="row g-3 text-center mb-4">
+      <!-- Step 1 -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="p-3 border rounded-3 h-100 bg-surface-elevated position-relative">
+          <div class="badge bg-primary position-absolute top-0 start-50 translate-middle">Stage 1</div>
+          <div class="fs-1 text-primary mt-2 mb-2"><i class="bi bi-person-bounding-box"></i></div>
+          <h6 class="fw-bold mb-1">Patient Brain MRI</h6>
+          <div class="text-info font-monospace small mb-2">Shape: (H, W, 3)</div>
+          <p class="text-muted small mb-0">Axial T1/T2/FLAIR scan ingested via secure multipart stream in PNG, JPG, or DICOM format.</p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="p-3 border rounded-3 h-100 bg-surface-elevated position-relative">
+          <div class="badge bg-info text-dark position-absolute top-0 start-50 translate-middle">Stage 2</div>
+          <div class="fs-1 text-info mt-2 mb-2"><i class="bi bi-sliders"></i></div>
+          <h6 class="fw-bold mb-1">CLAHE Preprocessing</h6>
+          <div class="text-info font-monospace small mb-2">Shape: (1, 224, 224, 3)</div>
+          <p class="text-muted small mb-0">Medical contrast equalization in LAB color space (clipLimit=2.0) with [0, 1] float32 normalization.</p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="p-3 border rounded-3 h-100 bg-surface-elevated position-relative">
+          <div class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle">Stage 3</div>
+          <div class="fs-1 text-warning mt-2 mb-2"><i class="bi bi-cpu-fill"></i></div>
+          <h6 class="fw-bold mb-1">Dual-Path Processing</h6>
+          <div class="text-warning font-monospace small mb-2">Latent: (7, 7, 1280)</div>
+          <p class="text-muted small mb-0">EfficientNetB0 compound backbone paired with Grad-CAM gradient tape tapped at layer <code>top_conv</code>.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="p-3 border rounded-3 h-100 bg-surface-elevated position-relative">
+          <div class="badge bg-success position-absolute top-0 start-50 translate-middle">Stage 4</div>
+          <div class="fs-1 text-success mt-2 mb-2"><i class="bi bi-hospital-fill"></i></div>
+          <h6 class="fw-bold mb-1">Clinical Delivery</h6>
+          <div class="text-success font-monospace small mb-2">REST API + PDF + DB</div>
+          <p class="text-muted small mb-0">Flask WSGI engine delivers 4-class Softmax, Jet heatmaps, SQLite history, and vector PDF reports.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Realistic ASCII Architecture Terminal Box -->
+    <div class="p-3 bg-surface-elevated rounded border">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-bold text-muted"><i class="bi bi-terminal-fill me-1 text-primary"></i> Neural Pipeline ASCII Schematic</span>
+        <span class="badge bg-secondary font-monospace">Architecture Topology</span>
+      </div>
+      <pre class="m-0 p-3 bg-dark text-info rounded font-monospace small overflow-x-auto text-start" style="line-height: 1.35; font-size: 0.82rem;">
+                    ┌───────────────────────────────┐
+                    │      Patient Brain MRI        │
+                    │   (Axial Scan / PNG / JPG)    │
+                    │      Shape: (H x W x 3)       │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │      CLAHE Preprocessing      │
+                    │ (Medical Contrast Enhancement)│
+                    │ LAB Space | clipLimit: 2.0    │
+                    │ Normalized: (1, 224, 224, 3)  │
+                    └───────────────┬───────────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    │                               │
+                    ▼                               ▼
+       ┌────────────────────────┐      ┌────────────────────────┐
+       │ EfficientNetB0 Backbone│      │ Grad-CAM Gradient Tape │
+       │ (Compound Scaled CNN)  │      │ (Feature Layer top_conv)│
+       │ 16 MBConv Blocks       │      │ Latent: (7, 7, 1280)   │
+       │ 5.3M Parameters        │      │ Backprop Class Logits  │
+       └────────────┬───────────┘      └────────────┬───────────┘
+                    │                               │
+                    ▼                               ▼
+       ┌────────────────────────┐      ┌────────────────────────┐
+       │   Softmax Classifier   │      │ Saliency Jet Heatmap   │
+       │ (4-Class Probabilities)│      │   & Superimposed Blend │
+       │ Glioma / Meningioma    │      │ α=0.40 Medical Blend   │
+       │ Pituitary / No Tumor   │      │ Colormap: cv2.COLORMAP │
+       └────────────┬───────────┘      └────────────┬───────────┘
+                    │                               │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+       ┌────────────────────────────────────────────────────────┐
+       │                   Flask Web Engine                     │
+       │          (REST API / Dynamic WSGI Runtime)             │
+       ├────────────────────────┬───────────────────────────────┤
+       │ SQLite Patient History │ ReportLab PDF Medical Report │
+       │ (ACID Scan Tracking)   │ (Vector Diagnostic Dossier)   │
+       └────────────────────────┴───────────────────────────────┘
+      </pre>
+    </div>
+  </div>
+
   <!-- Architectural Pipeline Diagram & Explanation -->
   <div class="row g-4 mb-4">
     <div class="col-lg-6">

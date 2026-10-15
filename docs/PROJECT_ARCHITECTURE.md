@@ -3,34 +3,94 @@
 
 ---
 
-## 1. High-Level Multi-Tier Architecture
+# NeuroVision AI - System Architecture & Engineering Specification
+**A deep-dive technical architecture document detailing model design, layer topologies, explainable AI mechanics, and data persistence.**
 
-NeuroVision AI is architected using a decoupled, modular 4-tier medical software design:
+---
+
+## 1. High-Level System Architecture
+
+NeuroVision AI implements a clinical-grade medical computer vision pipeline designed for rapid diagnostic triage and full explainability:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           TIER 1: PRESENTATION                          │
-│  - Bootstrap 5.3 Responsive Grid       - Dynamic Chart.js Analytics     │
-│  - Glassmorphic UI Design System       - Obsidian Dark/Light Theme Sync │
-│  - Drag & Drop Upload Zone             - Radar Scanner Sweep Animation  │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │ HTTP / REST API (JSON / FormData)
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        TIER 2: APPLICATION & API                        │
-│  - Flask 3.0 Application Routing       - Multipart File Sanitation      │
-│  - RESTful Endpoints (/api/predict)    - Session & Flash Messaging      │
-│  - Error Interceptors (413, 404, 500)  - Gunicorn Multi-Worker WSGI     │
-└──────────────────┬───────────────────────────────────────┬──────────────┘
-                   │                                       │
-                   ▼                                       ▼
-┌──────────────────────────────────────┐  ┌───────────────────────────────┐
-│     TIER 3: INFERENCE & XAI CORE     │  │   TIER 4: PERSISTENCE & DOCS  │
-│  - CLAHE Medical Image Enhancement   │  │  - SQLite 3 (neurovision.db)  │
-│  - EfficientNetB0 (Compound Scaling) │  │  - Indexed Transaction Engine │
-│  - Two-Stage Fine-Tuning Pipeline    │  │  - Vector ReportLab PDF Core  │
-│  - Grad-CAM Gradient-Tape Extractor  │  │  - Static Storage System      │
-└──────────────────────────────────────┘  └───────────────────────────────┘
+                    ┌───────────────────────────────┐
+                    │      Patient Brain MRI        │
+                    │   (Axial Scan / PNG / JPG)    │
+                    │      Shape: (H x W x 3)       │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │      CLAHE Preprocessing      │
+                    │ (Medical Contrast Enhancement)│
+                    │ LAB Space | clipLimit: 2.0    │
+                    │ Normalized: (1, 224, 224, 3)  │
+                    └───────────────┬───────────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    │                               │
+                    ▼                               ▼
+       ┌────────────────────────┐      ┌────────────────────────┐
+       │ EfficientNetB0 Backbone│      │ Grad-CAM Gradient Tape │
+       │ (Compound Scaled CNN)  │      │ (Feature Layer top_conv)│
+       │ 16 MBConv Blocks       │      │ Latent: (7, 7, 1280)   │
+       │ 5.3M Parameters        │      │ Backprop Class Logits  │
+       └────────────┬───────────┘      └────────────┬───────────┘
+                    │                               │
+                    ▼                               ▼
+       ┌────────────────────────┐      ┌────────────────────────┐
+       │   Softmax Classifier   │      │ Saliency Jet Heatmap   │
+       │ (4-Class Probabilities)│      │   & Superimposed Blend │
+       │ Glioma / Meningioma    │      │ α=0.40 Medical Blend   │
+       │ Pituitary / No Tumor   │      │ Colormap: cv2.COLORMAP │
+       └────────────┬───────────┘      └────────────┬───────────┘
+                    │                               │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+       ┌────────────────────────────────────────────────────────┐
+       │                   Flask Web Engine                     │
+       │          (REST API / Dynamic WSGI Runtime)             │
+       ├────────────────────────┬───────────────────────────────┤
+       │ SQLite Patient History │ ReportLab PDF Medical Report │
+       │ (ACID Scan Tracking)   │ (Vector Diagnostic Dossier)   │
+       └────────────────────────┴───────────────────────────────┘
+```
+
+### 1.1 Mermaid Pipeline Workflow
+
+```mermaid
+graph TD
+    A[("Patient Brain MRI<br/>(Axial Scan / PNG / JPG / DICOM)")] --> B["CLAHE Preprocessing<br/>(Contrast Limited Adaptive Histogram Eq.)<br/>LAB Space | clipLimit=2.0 | tileGrid=8x8"]
+    B --> C["Normalized Tensor<br/>Shape: (1, 224, 224, 3) | float32"]
+    
+    C --> D1["EfficientNetB0 Backbone<br/>(Compound Scaled CNN | 5.3M Params)"]
+    C --> D2["Grad-CAM Gradient Tape<br/>(Feature Extraction Layer: top_conv)"]
+    
+    D1 --> E1["Global Average Pooling 2D<br/>Shape: (1, 1280)"]
+    E1 --> F1["Dense 256 + Dropout 0.40<br/>L2 Regularization λ=1e-4"]
+    F1 --> G1["Softmax Classifier<br/>(Glioma, Meningioma, Pituitary, No Tumor)"]
+    
+    D2 --> E2["Activation Map A^k: (7, 7, 1280)<br/>&part;y^c / &part;A^k Gradient Backprop"]
+    E2 --> F2["Neuron Importance Weights α_k^c<br/>ReLU Positive Attribution Pooling"]
+    F2 --> G2["Saliency Jet Heatmap<br/>Superimposed Medical Overlay (α=0.40)"]
+    
+    G1 --> H["Flask Web Engine & REST API Controller<br/>(/predict & /api/predict)"]
+    G2 --> H
+    
+    H --> I1[("SQLite Patient History<br/>neurovision.db | Indexed Search")]
+    H --> I2["ReportLab Medical PDF Dossier<br/>Dual Imagery & Clinical Protocols"]
+    
+    style A fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc
+    style B fill:#1e293b,stroke:#818cf8,stroke-width:2px,color:#f8fafc
+    style C fill:#0f172a,stroke:#94a3b8,stroke-width:1px,color:#f8fafc
+    style D1 fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc
+    style D2 fill:#1e293b,stroke:#f59e0b,stroke-width:2px,color:#f8fafc
+    style G1 fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#ecfdf5
+    style G2 fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fef3c7
+    style H fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#e0e7ff
+    style I1 fill:#1e293b,stroke:#10b981,stroke-width:2px,color:#f8fafc
+    style I2 fill:#1e293b,stroke:#ef4444,stroke-width:2px,color:#f8fafc
 ```
 
 ---

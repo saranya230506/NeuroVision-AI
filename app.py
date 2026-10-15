@@ -133,6 +133,41 @@ def download_report(prediction_id: int):
     )
 
 
+@app.route("/export-csv")
+def export_csv():
+    """Export patient registry records to downloadable CSV."""
+    import csv
+    import io
+    from flask import Response
+
+    records = get_all_predictions(limit=1000)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Record ID", "Patient ID", "Patient Name", "Age", "Gender",
+        "Physician", "Predicted Class", "Confidence (%)", "Date & Time", "Notes"
+    ])
+    for r in records:
+        writer.writerow([
+            r.get("id"),
+            r.get("patient_id"),
+            r.get("patient_name"),
+            r.get("patient_age") or "",
+            r.get("patient_gender") or "",
+            r.get("physician_name") or "",
+            r.get("predicted_class"),
+            round(float(r.get("confidence", 0)) * 100, 2),
+            r.get("created_at"),
+            r.get("notes") or ""
+        ])
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=NeuroVision_Patient_Registry.csv"}
+    )
+
+
 @app.route("/about")
 def about_page():
     """Technical architecture, AI explainability, and IBM SkillsBuild internship details."""
@@ -380,14 +415,16 @@ def request_entity_too_large(error):
 def not_found_error(error):
     if request.path.startswith("/api/"):
         return jsonify({"success": False, "error": "API endpoint not found."}), 404
-    return render_template("index.html", error_message="Page not found"), 404
+    stats = get_statistics()
+    return render_template("index.html", stats=stats, error_message="Page not found", config=config), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
     if request.path.startswith("/api/"):
         return jsonify({"success": False, "error": "Internal server error occurred."}), 500
-    return render_template("index.html", error_message="An internal server error occurred"), 500
+    stats = get_statistics()
+    return render_template("index.html", stats=stats, error_message="An internal server error occurred", config=config), 500
 
 
 if __name__ == "__main__":

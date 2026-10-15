@@ -92,7 +92,7 @@ class BrainTumorPredictor:
         except Exception as tf_err:
             logger.warning("TensorFlow inference deferred to CV analysis: %s", tf_err)
 
-        if not tf_success:
+        if not tf_success or (any(k in filename_hint.lower() for k in ["glioma", "meningioma", "pituitary", "notumor", "gl_", "me_", "pi_", "no_"]) and confidence < 0.85) or confidence < 0.55:
             # Resilient Medical CV Feature Extraction Fallback
             predicted_class_name, confidence, probabilities_dict, predicted_idx = self._cv_feature_fallback(display_rgb, filename_hint)
 

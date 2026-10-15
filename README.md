@@ -73,40 +73,95 @@ Brain tumors represent some of the most aggressive oncological conditions global
 
 ## 🏗️ System Architecture
 
+```mermaid
+graph TD
+    subgraph INGESTION["1. Medical Image Ingestion & Preprocessing"]
+        A[Patient Brain MRI<br/>Axial T1/T2/FLAIR Scan] --> B[Tensor Normalization<br/>224 × 224 × 3 Float32]
+        B --> C[CLAHE Contrast Enhancement<br/>ClipLimit=2.0, Grid=8x8 in LAB Space]
+    end
+
+    subgraph BACKBONE["2. Compound-Scaled Deep Learning Core"]
+        C --> D[EfficientNetB0 Backbone<br/>16 MBConv Residual Blocks + Squeeze & Excitation]
+        D --> E["Feature Activations A^k<br/>Layer: top_conv (7 × 7 × 1280)"]
+    end
+
+    subgraph CLASSIFICATION["3. Diagnostic Decision Stream"]
+        E --> F[GlobalAveragePooling2D]
+        F --> G[BatchNormalization + Dense 256 + Dropout 0.4]
+        G --> H[Softmax Classifier<br/>4 Pathologies]
+        H --> I["Differential Diagnosis<br/>• Glioma (95.0% F1)<br/>• Meningioma (94.8% F1)<br/>• Pituitary (98.2% F1)<br/>• Normal Tissue (97.5% F1)"]
+    end
+
+    subgraph XAI["4. Explainable AI Stream (Grad-CAM)"]
+        E --> J["Gradient Tape Engine<br/>∂y^c / ∂A^k with respect to Class c"]
+        J --> K["Neuron Importance Weights α_k<br/>Global Spatial Average Pooling"]
+        K --> L["Weighted Activation Map<br/>L_GradCAM = ReLU(Σ α_k A^k)"]
+        L --> M["Jet Colormap Heatmap<br/>224 × 224 Bilinear Upsampling"]
+        M --> N["Superimposed Anatomical Overlay<br/>Original MRI (0.55) + Heatmap (0.45)"]
+    end
+
+    subgraph DELIVERY["5. Clinical Delivery & EMR Integration"]
+        I --> O[Flask WSGI Application Engine]
+        N --> O
+        O --> P[(SQLite 3 Patient Registry<br/>Longitudinal EMR Audit Trail)]
+        O --> Q[ReportLab Vector PDF Engine<br/>Automated Diagnostic Radiology Report]
+    end
+
+    style INGESTION fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff
+    style BACKBONE fill:#0f172a,stroke:#818cf8,stroke-width:2px,color:#fff
+    style CLASSIFICATION fill:#0f172a,stroke:#34d399,stroke-width:2px,color:#fff
+    style XAI fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style DELIVERY fill:#0f172a,stroke:#ec4899,stroke-width:2px,color:#fff
 ```
-                    ┌───────────────────────────────┐
-                    │      Patient Brain MRI        │
-                    │   (Axial Scan / PNG / JPG)    │
-                    └───────────────┬───────────────┘
-                                    │
-                                    ▼
-                    ┌───────────────────────────────┐
-                    │      CLAHE Preprocessing      │
-                    │ (Medical Contrast Enhancement)│
-                    └───────────────┬───────────────┘
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │                               │
-                    ▼                               ▼
-       ┌────────────────────────┐      ┌────────────────────────┐
-       │ EfficientNetB0 Backbone│      │ Grad-CAM Gradient Tape │
-       │ (Compound Scaled CNN)  │      │ (Feature Layer top_conv)│
-       └────────────┬───────────┘      └────────────┬───────────┘
-                    │                               │
-                    ▼                               ▼
-       ┌────────────────────────┐      ┌────────────────────────┐
-       │   Softmax Classifier   │      │ Saliency Jet Heatmap   │
-       │ (4-Class Probabilities)│      │   & Superimposed Blend │
-       └────────────┬───────────┘      └────────────┬───────────┘
-                    │                               │
-                    └───────────────┬───────────────┘
-                                    │
-                                    ▼
-       ┌────────────────────────────────────────────────────────┐
-       │                   Flask Web Engine                     │
-       ├────────────────────────┬───────────────────────────────┤
-       │ SQLite Patient History │ ReportLab PDF Medical Report │
-       └────────────────────────┴───────────────────────────────┘
+
+```
+                       ┌────────────────────────────────────────┐
+                       │     Patient Axial Brain MRI Scan       │
+                       │  Input Tensor Dimension: (1, 224, 224, 3)│
+                       └───────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                       ┌────────────────────────────────────────┐
+                       │   OpenCV CLAHE Contrast Enhancement    │
+                       │   • LAB Color Space (L-Channel CLAHE)  │
+                       │   • ClipLimit: 2.0 | GridSize: (8, 8)  │
+                       └───────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                       ┌────────────────────────────────────────┐
+                       │      EfficientNetB0 CNN Backbone       │
+                       │   • 16 MBConv Residual Blocks (SE)     │
+                       │   • Swish Non-Linear Activations       │
+                       │   • Compound Scaled (5.3M Parameters)  │
+                       └───────────────────┬────────────────────┘
+                                           │ Feature Map A^k (7×7×1280)
+                     ┌─────────────────────┴─────────────────────┐
+                     │                                           │
+                     ▼ (Forward Inference)                       ▼ (Backprop Gradient Tape)
+       ┌───────────────────────────┐               ┌───────────────────────────┐
+       │   GlobalAveragePooling2D  │               │   Grad-CAM Gradient Tape  │
+       │   Batch Normalization     │               │   ∂y^c / ∂A^k (top_conv)  │
+       │   Dense(256, ReLU, L2)    │               │   Neuron Importance α_k   │
+       │   Dropout(Rate = 0.40)    │               │   ReLU(Σ α_k · A^k)       │
+       └─────────────┬─────────────┘               └─────────────┬─────────────┘
+                     │                                           │
+                     ▼                                           ▼
+       ┌───────────────────────────┐               ┌───────────────────────────┐
+       │     Softmax Classifier    │               │ Saliency Jet Heatmap      │
+       │  [Glioma | Meningioma |   │               │ Bilinear Upsample 224×224 │
+       │   Pituitary | Normal]     │               │ Superimposed Blend (0.45) │
+       └─────────────┬─────────────┘               └─────────────┬─────────────┘
+                     │                                           │
+                     └─────────────────────┬─────────────────────┘
+                                           │
+                                           ▼
+       ┌───────────────────────────────────────────────────────────────────────┐
+       │                 Flask 3.x Clinical Inference Engine                   │
+       ├───────────────────────────────────┬───────────────────────────────────┤
+       │     SQLite 3 Patient Registry     │    ReportLab Vector PDF Engine    │
+       │   • Indexed Longitudinal History  │   • Dual-Image Radiology Layout   │
+       │   • Case Search & Class Filter    │   • Clinical Recommendations & XAI│
+       └───────────────────────────────────┴───────────────────────────────────┘
 ```
 
 ---
