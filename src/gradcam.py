@@ -6,6 +6,8 @@ to highlight exact anatomical regions of interest driving tumor predictions.
 
 import logging
 import sys
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import cv2
 import numpy as np
 
