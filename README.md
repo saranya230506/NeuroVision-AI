@@ -118,6 +118,9 @@ graph TD
     style DELIVERY fill:#0f172a,stroke:#ec4899,stroke-width:2px,color:#fff
 ```
 
+<details>
+<summary><b>🖥️ View ASCII Terminal Topology</b></summary>
+
 ```
                        ┌────────────────────────────────────────┐
                        │     Patient Axial Brain MRI Scan       │
@@ -167,6 +170,8 @@ graph TD
        │   • Case Search & Class Filter    │   • Clinical Recommendations & XAI│
        └───────────────────────────────────┴───────────────────────────────────┘
 ```
+
+</details>
 
 ---
 

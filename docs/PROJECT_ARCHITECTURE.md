@@ -14,6 +14,9 @@ NeuroVision AI implements a clinical-grade medical computer vision pipeline desi
 
 ![NeuroVision AI System Architecture](static/images/system_architecture.png)
 
+<details>
+<summary><b>🖥️ View ASCII Terminal Diagram</b></summary>
+
 ```
                     ┌───────────────────────────────┐
                     │      Patient Brain MRI        │
@@ -58,6 +61,8 @@ NeuroVision AI implements a clinical-grade medical computer vision pipeline desi
        │ (ACID Scan Tracking)   │ (Vector Diagnostic Dossier)   │
        └────────────────────────┴───────────────────────────────┘
 ```
+
+</details>
 
 ### 1.1 Mermaid Pipeline Workflow
 
