@@ -12,9 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const scanStatusText = document.getElementById('scan-status-text');
   const analyzeBtn = document.getElementById('analyze-btn');
   const resetBtn = document.getElementById('reset-btn');
-  
+
   // Results Elements
   const resultsCard = document.getElementById('results-card');
+  const resultsPlaceholder = document.getElementById('results-placeholder');
   const resPrimaryBadge = document.getElementById('res-primary-badge');
   const resConfidenceText = document.getElementById('res-confidence-text');
   const resSeverityText = document.getElementById('res-severity-text');
@@ -22,12 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const resRecommendationsList = document.getElementById('res-recommendations-list');
   const resViewReportBtn = document.getElementById('res-view-report-btn');
   const resDownloadPdfBtn = document.getElementById('res-download-pdf-btn');
-  
+
   // Visual Switchers
   const toggleOriginalBtn = document.getElementById('toggle-original-btn');
   const toggleGradcamBtn = document.getElementById('toggle-gradcam-btn');
   const resVisualImg = document.getElementById('res-visual-img');
-  
+
   let currentOriginalUrl = null;
   let currentGradcamUrl = null;
 
@@ -97,13 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
       previewContainer.classList.add('d-none');
       dropzone.classList.remove('d-none');
       analyzeBtn.disabled = true;
-      scanStatusText.textContent = 'Upload or drag an MRI scan to begin diagnosis.';
+      if (scanStatusText) scanStatusText.textContent = 'Upload or drag an MRI scan to begin diagnosis.';
       if (resultsCard) resultsCard.classList.add('d-none');
+      if (resultsPlaceholder) resultsPlaceholder.classList.remove('d-none');
       if (scanViewport) scanViewport.classList.remove('scanning');
     });
   }
 
-  // Handle Form Submission
+  // Handle Form Submission (manual upload)
   if (uploadForm) {
     uploadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -111,9 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.showToast('Please select or drop an MRI scan first.', 'error');
         return;
       }
-
       const formData = new FormData(uploadForm);
-      await executeInference('/api/predict', formData);
+      await executeInference('/api/predict', formData, 'POST', null);
     });
   }
 
@@ -123,42 +124,72 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', async () => {
       const sampleType = btn.getAttribute('data-sample');
       if (!sampleType) return;
-      
-      scanStatusText.textContent = `Loading reference scan for ${sampleType}...`;
-      if (previewContainer) previewContainer.classList.remove('d-none');
-      if (dropzone) dropzone.classList.add('d-none');
-      
-      await executeInference(`/api/sample/${sampleType}`, null, 'POST');
+
+      // Show scanner preview with a placeholder for the sample
+      previewImg.src = '';  // clear previous
+      previewContainer.classList.remove('d-none');
+      dropzone.classList.add('d-none');
+
+      if (scanStatusText) {
+        scanStatusText.textContent = `Loading reference scan for ${sampleType}…`;
+      }
+
+      await executeInference(`/api/sample/${sampleType}`, null, 'POST', sampleType);
     });
   });
 
-  // Execute Prediction API Call
-  async function executeInference(url, bodyData = null, method = 'POST') {
+  /**
+   * Execute Prediction API Call
+   * @param {string} url - API endpoint
+   * @param {FormData|null} bodyData - form data for upload (null for sample)
+   * @param {string} method - HTTP method
+   * @param {string|null} sampleType - sample type name for UX label
+   */
+  async function executeInference(url, bodyData = null, method = 'POST', sampleType = null) {
     // Start radar animation
     if (scanViewport) scanViewport.classList.add('scanning');
     analyzeBtn.disabled = true;
-    scanStatusText.innerHTML = '<span class="spinner-border spinner-border-sm me-2 text-info"></span> Analyzing neural activations and extracting Grad-CAM heatmap...';
+
+    const label = sampleType
+      ? `Running <strong>${sampleType}</strong> reference benchmark…`
+      : 'Analyzing neural activations and extracting Grad-CAM heatmap…';
+
+    if (scanStatusText) {
+      scanStatusText.innerHTML = `<span class="spinner-border spinner-border-sm me-2 text-info"></span> ${label}`;
+    }
+
+    // Hide previous results while loading
     if (resultsCard) resultsCard.classList.add('d-none');
+    if (resultsPlaceholder) resultsPlaceholder.classList.add('d-none');
 
     try {
-      const response = await fetch(url, {
-        method: method,
-        body: bodyData
-      });
+      const fetchOptions = { method };
+      if (bodyData) fetchOptions.body = bodyData;
 
+      const response = await fetch(url, fetchOptions);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to process brain MRI image.');
       }
 
+      // If this was a sample scan, show the returned Grad-CAM image in the scanner viewport
+      if (sampleType && data.image_url) {
+        previewImg.src = data.gradcam_overlay_url || data.image_url;
+      }
+
       displayResults(data);
-      window.showToast(`Diagnostic Assessment Complete: ${data.predicted_class} (${data.confidence_percentage}%)`, 'success');
+      window.showToast(
+        `Diagnostic Assessment Complete: ${data.predicted_class} (${data.confidence_percentage}%)`,
+        'success'
+      );
 
     } catch (err) {
       console.error(err);
       window.showToast(err.message, 'error');
-      scanStatusText.textContent = 'Diagnostic error occurred. Please try again.';
+      if (scanStatusText) scanStatusText.textContent = 'Diagnostic error occurred. Please try again.';
+      // Restore placeholder on error
+      if (resultsPlaceholder) resultsPlaceholder.classList.remove('d-none');
     } finally {
       if (scanViewport) scanViewport.classList.remove('scanning');
       analyzeBtn.disabled = false;
@@ -167,14 +198,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render Prediction Results into UI
   function displayResults(data) {
-    scanStatusText.textContent = `Diagnosis Completed for Patient ID: ${data.patient_id}`;
+    if (scanStatusText) {
+      scanStatusText.textContent = `Diagnosis Completed — Patient ID: ${data.patient_id}`;
+    }
 
     currentOriginalUrl = data.image_url;
     currentGradcamUrl = data.gradcam_overlay_url || data.image_url;
 
-    // Set visualization image
+    // Set visualization image (default to Grad-CAM overlay)
     if (resVisualImg) {
       resVisualImg.src = currentGradcamUrl;
+    }
+
+    // Restore toggle button states
+    if (toggleGradcamBtn) {
+      toggleGradcamBtn.className = 'btn btn-primary btn-sm';
+    }
+    if (toggleOriginalBtn) {
+      toggleOriginalBtn.className = 'btn btn-outline-primary btn-sm';
     }
 
     // Badge & Confidence
@@ -209,16 +250,25 @@ document.addEventListener('DOMContentLoaded', () => {
         .join('');
     }
 
-    // Probability Bars
+    // Probability Bars — keys must match API response keys exactly
     const probs = data.probabilities || {};
-    ['Glioma', 'Meningioma', 'No Tumor', 'Pituitary'].forEach(cls => {
-      const slug = cls.toLowerCase().replace(' ', '');
+    const classMap = [
+      { label: 'Glioma',      slug: 'glioma'    },
+      { label: 'Meningioma',  slug: 'meningioma'},
+      { label: 'No Tumor',    slug: 'notumor'   },
+      { label: 'Pituitary',   slug: 'pituitary' }
+    ];
+
+    classMap.forEach(({ label, slug }) => {
       const bar = document.getElementById(`prob-bar-${slug}`);
       const val = document.getElementById(`prob-val-${slug}`);
-      const pct = probs[cls] || 0.0;
+      const pct = probs[label] !== undefined ? probs[label] : 0.0;
       if (bar) {
         bar.style.width = '0%';
-        setTimeout(() => { bar.style.width = `${pct}%`; }, 100);
+        // Animate width after a brief delay
+        requestAnimationFrame(() => {
+          setTimeout(() => { bar.style.width = `${pct}%`; }, 80);
+        });
       }
       if (val) {
         val.textContent = `${pct}%`;
@@ -233,7 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
       resDownloadPdfBtn.href = data.pdf_url;
     }
 
-    // Show Results Card
+    // Hide placeholder, show results
+    if (resultsPlaceholder) resultsPlaceholder.classList.add('d-none');
     if (resultsCard) {
       resultsCard.classList.remove('d-none');
       resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -243,14 +294,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Toggle between Original MRI and Grad-CAM Overlay
   if (toggleOriginalBtn && toggleGradcamBtn && resVisualImg) {
     toggleOriginalBtn.addEventListener('click', () => {
-      toggleOriginalBtn.classList.replace('btn-outline-primary', 'btn-primary');
-      toggleGradcamBtn.classList.replace('btn-primary', 'btn-outline-primary');
+      toggleOriginalBtn.className = 'btn btn-primary btn-sm';
+      toggleGradcamBtn.className = 'btn btn-outline-primary btn-sm';
       if (currentOriginalUrl) resVisualImg.src = currentOriginalUrl;
     });
 
     toggleGradcamBtn.addEventListener('click', () => {
-      toggleGradcamBtn.classList.replace('btn-outline-primary', 'btn-primary');
-      toggleOriginalBtn.classList.replace('btn-primary', 'btn-outline-primary');
+      toggleGradcamBtn.className = 'btn btn-primary btn-sm';
+      toggleOriginalBtn.className = 'btn btn-outline-primary btn-sm';
       if (currentGradcamUrl) resVisualImg.src = currentGradcamUrl;
     });
   }
