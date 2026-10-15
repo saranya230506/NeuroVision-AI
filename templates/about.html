@@ -43,9 +43,17 @@
       </div>
     </div>
     
-    <p class="text-muted small mb-4">
+    <p class="text-muted small mb-3">
       The complete dataflow from patient acquisition to dual explainable visual attribution and certified vector medical reporting:
     </p>
+
+    <!-- Realistic Architectural Diagram Graphic -->
+    <div class="text-center mb-4 p-2 bg-dark rounded-3 border overflow-hidden position-relative">
+      <img src="{{ url_for('static', filename='images/system_architecture.png') }}" alt="Realistic NeuroVision AI System Architecture Diagram" class="img-fluid rounded" style="max-height: 520px; width: 100%; object-fit: contain;" />
+      <div class="position-absolute bottom-0 end-0 m-3 badge bg-dark text-info border border-secondary">
+        <i class="bi bi-diagram-3-fill me-1"></i> End-to-End Neural Pipeline
+      </div>
+    </div>
 
     <!-- Visual Interactive Flow Steps -->
     <div class="row g-3 text-center mb-4">

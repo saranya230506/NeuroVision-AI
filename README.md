@@ -73,6 +73,10 @@ Brain tumors represent some of the most aggressive oncological conditions global
 
 ## 🏗️ System Architecture
 
+<div align="center">
+  <img src="static/images/system_architecture.png" alt="NeuroVision AI Realistic System Architecture" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); margin-bottom: 25px;" />
+</div>
+
 ```mermaid
 graph TD
     subgraph INGESTION["1. Medical Image Ingestion & Preprocessing"]

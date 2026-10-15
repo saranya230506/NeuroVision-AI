@@ -12,6 +12,8 @@
 
 NeuroVision AI implements a clinical-grade medical computer vision pipeline designed for rapid diagnostic triage and full explainability:
 
+![NeuroVision AI System Architecture](static/images/system_architecture.png)
+
 ```
                     ┌───────────────────────────────┐
                     │      Patient Brain MRI        │
