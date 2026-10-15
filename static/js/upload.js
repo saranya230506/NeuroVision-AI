@@ -168,19 +168,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const response = await fetch(url, fetchOptions);
 
-      // Safely parse JSON — server may return HTML on 500/502/503
+      // Safely parse JSON — Render free tier returns HTML 502/503 on cold start
       let data;
       const contentType = response.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
         data = await response.json();
       } else {
-        const text = await response.text();
-        console.error('Non-JSON server response:', response.status, text.slice(0, 300));
-        throw new Error(
-          response.status === 502 || response.status === 503
-            ? 'Server is starting up (cold start). Please wait 30 seconds and try again.'
-            : `Server error (${response.status}). Check the Render logs for details.`
-        );
+        const isColdStart = response.status === 502 || response.status === 503 || response.status === 0;
+        console.error('Non-JSON server response:', response.status);
+
+        if (isColdStart) {
+          // Auto-retry with countdown
+          let secs = 35;
+          const countdownInterval = setInterval(() => {
+            secs--;
+            if (scanStatusText) {
+              scanStatusText.innerHTML = `<span class="spinner-border spinner-border-sm me-2 text-warning"></span> Server waking up… retrying in <strong>${secs}s</strong>`;
+            }
+            if (secs <= 0) clearInterval(countdownInterval);
+          }, 1000);
+
+          window.showToast('Server is waking up (cold start). Auto-retrying in 35 seconds…', 'warning');
+
+          await new Promise(resolve => setTimeout(resolve, 35000));
+          clearInterval(countdownInterval);
+
+          // Retry the request once
+          const retry = await fetch(url, fetchOptions);
+          const retryType = retry.headers.get('content-type') || '';
+          if (retryType.includes('application/json')) {
+            data = await retry.json();
+          } else {
+            throw new Error('Server unavailable. Please refresh the page and try again in a minute.');
+          }
+        } else {
+          throw new Error(`Server error (${response.status}). Please try again.`);
+        }
       }
 
       if (!response.ok || !data.success) {
