@@ -84,3 +84,6 @@ Internship Deliverables Overview.pdf
 output.txt
 test_pred.txt
 
+# Docs source files (keep only compiled PDFs in git)
+docs/*.md
+docs/*.typ
